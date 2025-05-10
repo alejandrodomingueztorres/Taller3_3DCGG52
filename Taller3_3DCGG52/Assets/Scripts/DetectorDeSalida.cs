@@ -1,0 +1,109 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class DetectorDeSalida : MonoBehaviour
+{
+    public float tiempoDeteccion = 1.5f;
+    public bool requerirInteraccion = false;
+
+    public ParticleSystem efectoSalida;
+    public AudioClip sonidoSalida;
+    public Material materialActivado;
+
+    private MeshRenderer meshRenderer;
+    private Material materialOriginal;
+    private bool jugadorEnZona = false;
+    private float tiempoEnZona = 0f;
+    private GameController controladorEscena; //donde dice Scene2Controller colocas el nombre del script que haga rivera
+    private bool salidaActivada = false;
+
+    void Start()
+    {
+
+        controladorEscena = FindObjectOfType<GameController>(); //nombre del script
+
+
+        meshRenderer = GetComponent<MeshRenderer>();
+        if (meshRenderer != null && meshRenderer.material != null)
+        {
+            materialOriginal = meshRenderer.material;
+        }
+    }
+
+    void Update()
+    {
+        if (salidaActivada)
+            return;
+
+        if (jugadorEnZona)
+        {
+
+            if (requerirInteraccion)
+            {
+                if (Input.GetKeyDown(KeyCode.E))
+                {
+                    ActivarSalida();
+                }
+            }
+            else
+            {
+
+                tiempoEnZona += Time.deltaTime;
+
+                if (tiempoEnZona >= tiempoDeteccion)
+                {
+                    ActivarSalida();
+                }
+            }
+        }
+    }
+
+    private void ActivarSalida()
+    {
+        if (salidaActivada)
+            return;
+
+        salidaActivada = true;
+
+
+        if (efectoSalida != null)
+        {
+            efectoSalida.Play();
+        }
+
+
+        if (sonidoSalida != null)
+        {
+            AudioSource.PlayClipAtPoint(sonidoSalida, transform.position);
+        }
+
+
+        if (meshRenderer != null && materialActivado != null)
+        {
+            meshRenderer.material = materialActivado;
+        }
+
+
+        if (controladorEscena != null)
+        {
+            //controladorEscena.JugadorLlegoSalida();
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player") && !salidaActivada)
+        {
+            jugadorEnZona = true;
+            tiempoEnZona = 0f;
+
+
+            //if (requerirInteraccion && UIManager.Instance != null)
+            //{
+            //    UIManager.Instance.MostrarMensajeInteraccion(true, "Presiona E para escapar");
+            //}
+        }
+    }
+
+}
